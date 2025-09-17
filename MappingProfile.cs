@@ -1,6 +1,7 @@
-﻿using AutoMapper;
+using AutoMapper;
 using InfraConta = EmpresaX.POS.Infrastructure.Conta;
 using EmpresaX.POS.API.Controllers;
+using EmpresaX.POS.API.Modelos.DTOs;
 
 namespace EmpresaX.POS.API.Mapping
 {
