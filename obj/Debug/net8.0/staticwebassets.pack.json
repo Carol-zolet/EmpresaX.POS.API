@@ -1,0 +1,65 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Projetos\\EmpresaX.POS.API\\wwwroot\\css\\dashboard.css",
+      "PackagePath": "staticwebassets\\css\\dashboard.css"
+    },
+    {
+      "Id": "C:\\Projetos\\EmpresaX.POS.API\\wwwroot\\css\\login-style.css",
+      "PackagePath": "staticwebassets\\css\\login-style.css"
+    },
+    {
+      "Id": "C:\\Projetos\\EmpresaX.POS.API\\wwwroot\\css\\style.css",
+      "PackagePath": "staticwebassets\\css\\style.css"
+    },
+    {
+      "Id": "C:\\Projetos\\EmpresaX.POS.API\\wwwroot\\index.html",
+      "PackagePath": "staticwebassets\\index.html"
+    },
+    {
+      "Id": "C:\\Projetos\\EmpresaX.POS.API\\wwwroot\\js\\app.js",
+      "PackagePath": "staticwebassets\\js\\app.js"
+    },
+    {
+      "Id": "C:\\Projetos\\EmpresaX.POS.API\\wwwroot\\js\\app.js.backup",
+      "PackagePath": "staticwebassets\\js\\app.js.backup"
+    },
+    {
+      "Id": "C:\\Projetos\\EmpresaX.POS.API\\wwwroot\\js\\app.js.backup2",
+      "PackagePath": "staticwebassets\\js\\app.js.backup2"
+    },
+    {
+      "Id": "C:\\Projetos\\EmpresaX.POS.API\\wwwroot\\js\\app.js.erro",
+      "PackagePath": "staticwebassets\\js\\app.js.erro"
+    },
+    {
+      "Id": "C:\\Projetos\\EmpresaX.POS.API\\wwwroot\\js\\dashboard.js",
+      "PackagePath": "staticwebassets\\js\\dashboard.js"
+    },
+    {
+      "Id": "C:\\Projetos\\EmpresaX.POS.API\\wwwroot\\js\\dashboard.js.backup",
+      "PackagePath": "staticwebassets\\js\\dashboard.js.backup"
+    },
+    {
+      "Id": "C:\\Projetos\\EmpresaX.POS.API\\wwwroot\\js\\dashboard.js.old",
+      "PackagePath": "staticwebassets\\js\\dashboard.js.old"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.EmpresaX.POS.API.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.EmpresaX.POS.API.props",
+      "PackagePath": "build\\EmpresaX.POS.API.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.EmpresaX.POS.API.props",
+      "PackagePath": "buildMultiTargeting\\EmpresaX.POS.API.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.EmpresaX.POS.API.props",
+      "PackagePath": "buildTransitive\\EmpresaX.POS.API.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

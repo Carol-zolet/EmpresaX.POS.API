@@ -1,0 +1,442 @@
+﻿const API_BASE = "/api";
+let currentSection = "dashboard";
+let contasPagar = [];
+let editandoConta = null;
+
+document.addEventListener("DOMContentLoaded", function() {
+    console.log("App iniciando...");
+    loadDashboard();
+});
+
+function showSection(sectionId) {
+    console.log("Mostrando seção:", sectionId);
+    
+    document.querySelectorAll(".content-section").forEach(function(section) {
+        section.classList.remove("active");
+    });
+    
+    document.querySelectorAll(".nav-btn").forEach(function(btn) {
+        btn.classList.remove("active");
+    });
+    
+    document.getElementById(sectionId).classList.add("active");
+    document.getElementById("btn-" + sectionId).classList.add("active");
+    
+    currentSection = sectionId;
+    
+    switch(sectionId) {
+        case "dashboard":
+            loadDashboard();
+            break;
+        case "contas-pagar":
+            loadContasPagar();
+            break;
+        case "fluxo-caixa":
+            loadFluxoCaixa();
+            break;
+        case "conciliacao":
+            loadConciliacao();
+            break;
+    }
+}
+
+async function loadDashboard() {
+    console.log("Carregando dashboard...");
+    try {
+        const healthResponse = await fetch(API_BASE + "/status/health");
+        console.log("Health check:", healthResponse.status);
+    } catch (error) {
+        console.error("Erro ao carregar dashboard:", error);
+    }
+}
+
+async function loadContasPagar() {
+    console.log("=== CARREGANDO CONTAS A PAGAR ===");
+    try {
+        const url = API_BASE + "/contaspagar";
+        console.log("URL:", url);
+        
+        const response = await fetch(url);
+        console.log("Status:", response.status);
+        
+        const data = await response.json();
+        console.log("Dados:", data);
+        
+        if (data && data.contas) {
+            contasPagar = data.contas;
+            console.log("Contas carregadas:", contasPagar.length);
+            renderContasPagar(contasPagar);
+        }
+        
+    } catch (error) {
+        console.error("Erro ao carregar contas:", error);
+        document.getElementById("tbody-contas").innerHTML = 
+            '<tr><td colspan="6" class="loading">Erro ao carregar: ' + error.message + '</td></tr>';
+    }
+}
+
+async function loadFluxoCaixa() {
+    console.log("=== CARREGANDO FLUXO DE CAIXA ===");
+    
+    showFluxoCaixaLoading();
+    
+    try {
+        const posicaoResponse = await fetch(API_BASE + "/fluxocaixa/posicao");
+        const movimentacoesResponse = await fetch(API_BASE + "/fluxocaixa/movimentacoes");
+        const dashboardResponse = await fetch(API_BASE + "/fluxocaixa/dashboard");
+
+        if (!posicaoResponse.ok || !movimentacoesResponse.ok || !dashboardResponse.ok) {
+            throw new Error("Erro ao carregar dados do fluxo de caixa");
+        }
+
+        const posicaoData = await posicaoResponse.json();
+        const movimentacoesData = await movimentacoesResponse.json();
+        const dashboardData = await dashboardResponse.json();
+        
+        renderFluxoCaixa(posicaoData.posicaoAtual, movimentacoesData, dashboardData.dashboard);
+        
+    } catch (error) {
+        console.error("Erro ao carregar fluxo de caixa:", error);
+        showFluxoCaixaError("Erro ao carregar fluxo de caixa: " + error.message);
+    }
+}
+
+function showFluxoCaixaLoading() {
+    const loadingHtml = '<div class="loading">Carregando...</div>';
+    
+    const elementos = ["entradas-lista", "saidas-lista", "saldo-info", "movimentacoes-lista"];
+    elementos.forEach(function(id) {
+        const element = document.getElementById(id);
+        if (element) element.innerHTML = loadingHtml;
+    });
+}
+
+function showFluxoCaixaError(message) {
+    const errorHtml = '<div class="error-message">' + message + '</div>';
+    
+    const elementos = ["entradas-lista", "saidas-lista", "saldo-info", "movimentacoes-lista"];
+    elementos.forEach(function(id) {
+        const element = document.getElementById(id);
+        if (element) element.innerHTML = errorHtml;
+    });
+}
+
+function renderFluxoCaixa(posicao, movimentacoes, dashboard) {
+    console.log("Renderizando fluxo de caixa");
+    
+    const entradasElement = document.getElementById("entradas-lista");
+    if (entradasElement) {
+        entradasElement.innerHTML = 
+            '<div class="fluxo-summary">' +
+                '<h4>Previsões de Entrada</h4>' +
+                '<div>Hoje: R$ ' + posicao.entradas.previstasHoje.toFixed(2).replace('.', ',') + '</div>' +
+                '<div>7 dias: R$ ' + posicao.entradas.previstas7Dias.toFixed(2).replace('.', ',') + '</div>' +
+                '<div>30 dias: R$ ' + posicao.entradas.previstas30Dias.toFixed(2).replace('.', ',') + '</div>' +
+                '<div><strong>Realizadas: R$ ' + posicao.entradas.realizadasMes.toFixed(2).replace('.', ',') + '</strong></div>' +
+            '</div>';
+    }
+
+    const saidasElement = document.getElementById("saidas-lista");
+    if (saidasElement) {
+        saidasElement.innerHTML = 
+            '<div class="fluxo-summary">' +
+                '<h4>Previsões de Saída</h4>' +
+                '<div>Hoje: R$ ' + posicao.saidas.previstasHoje.toFixed(2).replace('.', ',') + '</div>' +
+                '<div>7 dias: R$ ' + posicao.saidas.previstas7Dias.toFixed(2).replace('.', ',') + '</div>' +
+                '<div>30 dias: R$ ' + posicao.saidas.previstas30Dias.toFixed(2).replace('.', ',') + '</div>' +
+                '<div><strong>Realizadas: R$ ' + posicao.saidas.realizadasMes.toFixed(2).replace('.', ',') + '</strong></div>' +
+            '</div>';
+    }
+
+    const saldoElement = document.getElementById("saldo-info");
+    if (saldoElement) {
+        saldoElement.innerHTML = 
+            '<div class="saldo-card">' +
+                '<h3>Posição Financeira</h3>' +
+                '<div class="saldo-valor-principal">' + posicao.saldoAtualFormatado + '</div>' +
+                '<div>Em 7 dias: R$ ' + posicao.projecao.saldo7Dias.toFixed(2).replace('.', ',') + '</div>' +
+                '<div>Em 30 dias: R$ ' + posicao.projecao.saldo30Dias.toFixed(2).replace('.', ',') + '</div>' +
+                '<div>Tendência: ' + posicao.projecao.tendencia + '</div>' +
+            '</div>';
+    }
+
+    const movimentacoesElement = document.getElementById("movimentacoes-lista");
+    if (movimentacoesElement) {
+        let movimentacoesHtml = '<h4>Movimentações</h4>';
+        for (let i = 0; i < movimentacoes.movimentacoes.length; i++) {
+            const mov = movimentacoes.movimentacoes[i];
+            movimentacoesHtml += 
+                '<div class="movimentacao-item">' +
+                    '<span>' + new Date(mov.data).toLocaleDateString('pt-BR') + '</span> ' +
+                    '<span>' + mov.descricao + '</span> ' +
+                    '<span>' + mov.categoria + '</span> ' +
+                    '<span>R$ ' + Math.abs(mov.valor).toFixed(2).replace('.', ',') + '</span> ' +
+                    '<span>' + mov.status + '</span>' +
+                '</div>';
+        }
+        movimentacoesElement.innerHTML = movimentacoesHtml;
+    }
+}
+
+function filtrarContas() {
+    const filtro = document.getElementById("filtro-status").value;
+    console.log("Filtro selecionado:", filtro);
+    
+    if (filtro === "todas") {
+        renderContasPagar(contasPagar);
+    } else {
+        const contasFiltradas = contasPagar.filter(function(conta) {
+            return conta.status === filtro;
+        });
+        renderContasPagar(contasFiltradas);
+    }
+}
+
+function loadConciliacao() {
+    console.log("Carregando conciliação...");
+}
+
+function showModal(modalId) {
+    console.log("Mostrando modal:", modalId);
+    document.getElementById(modalId).style.display = "block";
+}
+
+function closeModal(modalId) {
+    console.log("Fechando modal:", modalId);
+    document.getElementById(modalId).style.display = "none";
+    if (modalId === "modal-nova-conta") {
+        document.getElementById("form-nova-conta").reset();
+        editandoConta = null;
+        document.querySelector("#modal-nova-conta .modal-header h3").textContent = "Nova Conta a Pagar";
+    }
+}
+
+function formatDate(dateString) {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("pt-BR");
+}
+
+function editarConta(id) {
+    const conta = contasPagar.find(function(c) { return c.id === id; });
+    if (!conta) {
+        alert("Conta não encontrada");
+        return;
+    }
+    
+    console.log("Editando conta:", conta);
+    editandoConta = conta;
+    
+    document.getElementById("fornecedor").value = conta.fornecedor;
+    document.getElementById("descricao").value = conta.descricao;
+    document.getElementById("valor").value = conta.valor;
+    document.getElementById("vencimento").value = conta.vencimento;
+    document.getElementById("categoria").value = conta.categoria || "";
+    
+    document.querySelector("#modal-nova-conta .modal-header h3").textContent = "Editar Conta a Pagar";
+    
+    showModal("modal-nova-conta");
+}
+
+function excluirConta(id) {
+    const conta = contasPagar.find(function(c) { return c.id === id; });
+    if (!conta) {
+        alert("Conta não encontrada");
+        return;
+    }
+    
+    if (confirm("Confirma a exclusão da conta \"" + conta.fornecedor + "\"?\n\nEsta ação não pode ser desfeita.")) {
+        console.log("Excluindo conta:", id);
+        
+        const indice = contasPagar.findIndex(function(c) { return c.id === id; });
+        if (indice !== -1) {
+            contasPagar.splice(indice, 1);
+            renderContasPagar(contasPagar);
+            alert("Conta excluída com sucesso!");
+        }
+    }
+}
+
+function marcarComoPaga(id) {
+    const conta = contasPagar.find(function(c) { return c.id === id; });
+    if (!conta) {
+        alert("Conta não encontrada");
+        return;
+    }
+    
+    if (confirm("Confirma o pagamento da conta \"" + conta.fornecedor + "\"?")) {
+        conta.status = "Paga";
+        conta.dataPagamento = new Date().toISOString().split('T')[0];
+        
+        renderContasPagar(contasPagar);
+        alert("Conta marcada como paga!");
+    }
+}
+
+function renderContasPagar(contas) {
+    const tbody = document.getElementById("tbody-contas");
+    
+    if (!contas || contas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="loading">Nenhuma conta encontrada</td></tr>';
+        return;
+    }
+    
+    let htmlRows = '';
+    for (let i = 0; i < contas.length; i++) {
+        const conta = contas[i];
+        
+        const dataVencimento = new Date(conta.vencimento);
+        const hoje = new Date();
+        const diffTime = dataVencimento - hoje;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        let alertaVencimento = '';
+        let statusClass = conta.status.toLowerCase();
+        
+        if (conta.status === "Pendente" && diffDays < 0) {
+            statusClass = "vencida";
+            alertaVencimento = '<br><small style="color: #e74c3c;">' + Math.abs(diffDays) + ' dias em atraso</small>';
+        } else if (conta.status === "Pendente" && diffDays <= 7 && diffDays >= 0) {
+            alertaVencimento = '<br><small style="color: #f39c12;">Vence em ' + diffDays + ' dias</small>';
+        }
+        
+        const botaoPagar = conta.status === 'Pendente' ? 
+            '<button onclick="marcarComoPaga(' + conta.id + ')" class="btn-success" style="margin-right: 0.25rem;">Pagar</button>' : '';
+        
+        htmlRows += 
+            '<tr>' +
+                '<td><strong>' + conta.fornecedor + '</strong></td>' +
+                '<td>' + conta.descricao + '</td>' +
+                '<td><strong>R$ ' + conta.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2}) + '</strong></td>' +
+                '<td>' + formatDate(conta.vencimento) + alertaVencimento + '</td>' +
+                '<td><span class="status-' + statusClass + '">' + conta.status + '</span></td>' +
+                '<td style="white-space: nowrap;">' +
+                    '<button onclick="editarConta(' + conta.id + ')" class="btn-secondary" style="margin-right: 0.25rem;">Editar</button>' +
+                    botaoPagar +
+                    '<button onclick="excluirConta(' + conta.id + ')" class="btn-danger">Excluir</button>' +
+                '</td>' +
+            '</tr>';
+    }
+    
+    tbody.innerHTML = htmlRows;
+}
+
+async function salvarNovaConta(event) {
+    event.preventDefault();
+    console.log("Salvando conta...");
+    
+    const fornecedor = document.getElementById("fornecedor").value.trim();
+    const descricao = document.getElementById("descricao").value.trim();
+    const valor = parseFloat(document.getElementById("valor").value);
+    const vencimento = document.getElementById("vencimento").value;
+    const categoria = document.getElementById("categoria").value;
+    
+    if (!fornecedor) {
+        alert("Fornecedor é obrigatório");
+        return;
+    }
+    
+    if (!descricao) {
+        alert("Descrição é obrigatória");
+        return;
+    }
+    
+    if (!valor || valor <= 0) {
+        alert("Valor deve ser maior que zero");
+        return;
+    }
+    
+    if (!vencimento) {
+        alert("Data de vencimento é obrigatória");
+        return;
+    }
+    
+    try {
+        if (editandoConta) {
+            const indice = contasPagar.findIndex(function(c) { return c.id === editandoConta.id; });
+            if (indice !== -1) {
+                contasPagar[indice] = {
+                    id: editandoConta.id,
+                    fornecedor: fornecedor,
+                    descricao: descricao,
+                    valor: valor,
+                    vencimento: vencimento,
+                    categoria: categoria,
+                    status: editandoConta.status
+                };
+                
+                console.log("Conta atualizada:", contasPagar[indice]);
+                alert("Conta atualizada com sucesso!");
+            }
+            editandoConta = null;
+        } else {
+            const novaConta = {
+                id: Date.now(),
+                fornecedor: fornecedor,
+                descricao: descricao,
+                valor: valor,
+                vencimento: vencimento,
+                categoria: categoria,
+                status: "Pendente"
+            };
+            
+            console.log("Nova conta criada:", novaConta);
+            contasPagar.unshift(novaConta);
+            alert("Conta criada com sucesso!");
+        }
+        
+        renderContasPagar(contasPagar);
+        closeModal("modal-nova-conta");
+        document.getElementById("form-nova-conta").reset();
+        document.querySelector("#modal-nova-conta .modal-header h3").textContent = "Nova Conta a Pagar";
+        
+    } catch (error) {
+        console.error("Erro ao salvar conta:", error);
+        alert("Erro ao salvar conta: " + error.message);
+    }
+}
+
+const style = document.createElement('style');
+style.textContent = 
+    '.loading { text-align: center; padding: 2rem; color: #6c757d; font-style: italic; }' +
+    '.error-message { text-align: center; padding: 2rem; color: #dc3545; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 6px; margin: 1rem; }' +
+    '.status-pendente { background: #fff3cd; color: #856404; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem; }' +
+    '.status-paga { background: #d4edda; color: #155724; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem; }' +
+    '.status-vencida { background: #f8d7da; color: #721c24; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem; font-weight: bold; }' +
+    '.btn-secondary { background: #6c757d; color: white; border: none; border-radius: 3px; cursor: pointer; padding: 0.25rem 0.5rem; font-size: 0.75rem; }' +
+    '.btn-secondary:hover { background: #545b62; }' +
+    '.btn-danger { background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer; padding: 0.25rem 0.5rem; font-size: 0.75rem; }' +
+    '.btn-danger:hover { background: #c82333; }' +
+    '.btn-success { background: #28a745; color: white; border: none; border-radius: 3px; cursor: pointer; padding: 0.25rem 0.5rem; font-size: 0.75rem; }' +
+    '.btn-success:hover { background: #218838; }' +
+    '.fluxo-summary { padding: 1rem; }' +
+    '.fluxo-summary h4 { margin-bottom: 1rem; }' +
+    '.fluxo-summary div { padding: 0.5rem 0; border-bottom: 1px solid #eee; }' +
+    '.saldo-card { text-align: center; padding: 1.5rem; background: #f8f9fa; border-radius: 8px; }' +
+    '.saldo-valor-principal { font-size: 2rem; font-weight: bold; margin: 1rem 0; }' +
+    '.movimentacao-item { padding: 0.5rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }' +
+    'table td { vertical-align: middle; }';
+
+document.head.appendChild(style);
+// Tipos de Bloqueio para Sistema Financeiro (baseado no EVO)
+const BLOCK_TYPES = {
+    0: "Sem bloqueio",
+    1: "Usuário não encontrado", 
+    2: "Sem permissão para este módulo",
+    3: "Conta de usuário inativa",
+    4: "Acesso temporariamente suspenso",
+    5: "Limite de tentativas de login excedido",
+    6: "Acesso fora do horário permitido",
+    7: "Dispositivo não autorizado",
+    8: "Sessão expirada",
+    9: "Necessária autenticação de dois fatores",
+    10: "Conta com pendências financeiras",
+    11: "Acesso apenas mediante aprovação",
+    12: "Módulo em manutenção",
+    13: "Licença do sistema expirada",
+    14: "Limite de usuários simultâneos atingido"
+};
+
+function getBlockMessage(blockType) {
+    return BLOCK_TYPES[blockType] || "Bloqueio desconhecido";
+}

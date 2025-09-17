@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\EmpresaX.POS.API.props" />
+</Project>

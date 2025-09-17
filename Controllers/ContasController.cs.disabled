@@ -1,0 +1,32 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using EmpresaX.POS.Infrastructure;
+
+namespace EmpresaX.POS.API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ContasController : ControllerBase
+    {
+        private readonly FinanceDbContext _context;
+
+        public ContasController(FinanceDbContext context)
+        {
+            _context = context;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Conta>>> GetContas()
+        {
+            return await _context.Contas.ToListAsync();
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<Conta>> CreateConta(Conta conta)
+        {
+            _context.Contas.Add(conta);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetContas), new { id = conta.Id }, conta);
+        }
+    }
+}

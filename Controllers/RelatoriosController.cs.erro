@@ -1,0 +1,214 @@
+﻿using Microsoft.AspNetCore.Mvc;
+
+namespace EmpresaX.POS.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class RelatoriosController : ControllerBase
+    {
+        [HttpGet("financeiro/resumo")]
+        public ActionResult<object> RelatorioFinanceiroResumo([FromQuery] string dataInicio = "", [FromQuery] string dataFim = "")
+        {
+            try
+            {
+                var inicio = string.IsNullOrEmpty(dataInicio) ? DateTime.Now.AddDays(-30) : DateTime.Parse(dataInicio);
+                var fim = string.IsNullOrEmpty(dataFim) ? DateTime.Now : DateTime.Parse(dataFim);
+
+                return Ok(new
+                {
+                    sucesso = true,
+                    periodo = new
+                    {
+                        inicio = inicio.ToString("dd/MM/yyyy"),
+                        fim = fim.ToString("dd/MM/yyyy"),
+                        dias = (fim - inicio).Days
+                    },
+                    resumo = new
+                    {
+                        totalEntradas = 45680.50m,
+                        totalSaidas = 32450.30m,
+                        saldoLiquido = 13230.20m,
+                        margemLucro = 28.95m,
+                        
+                        contasPagar = new
+                        {
+                            total = 15,
+                            pendentes = 8,
+                            pagas = 5,
+                            vencidas = 2,
+                            valorTotal = 12850.00m,
+                            valorPendente = 4520.80m
+                        },
+                        
+                        contasReceber = new
+                        {
+                            total = 25,
+                            recebidas = 18,
+                            pendentes = 5,
+                            vencidas = 2,
+                            valorTotal = 35680.50m,
+                            valorPendente = 8950.20m
+                        }
+                    },
+                    
+                    evolucaoMensal = new[]
+                    {
+                        new { mes = "Jan/2025", entradas = 38500.00m, saidas = 29800.00m, lucro = 8700.00m },
+                        new { mes = "Fev/2025", entradas = 42300.00m, saidas = 31200.00m, lucro = 11100.00m },
+                        new { mes = "Mar/2025", entradas = 45680.50m, saidas = 32450.30m, lucro = 13230.20m }
+                    },
+                    
+                    topFornecedores = new[]
+                    {
+                        new { nome = "Fornecedor ABC Ltda", valor = 2850.00m, percentual = 22.18m },
+                        new { nome = "Energia Elétrica S.A.", valor = 2100.50m, percentual = 16.35m },
+                        new { nome = "Telecomunicações XYZ", valor = 1650.00m, percentual = 12.84m }
+                    },
+                    
+                    indicadores = new
+                    {
+                        liquidezCorrente = 2.45m,
+                        endividamento = 18.5m,
+                        retornoInvestimento = 15.8m,
+                        prazoMedioRecebimento = 28,
+                        prazoMedioPagamento = 35
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = ex.Message });
+            }
+        }
+
+        [HttpGet("vendas/performance")]
+        public ActionResult<object> RelatorioVendasPerformance([FromQuery] string periodo = "mensal")
+        {
+            try
+            {
+                return Ok(new
+                {
+                    sucesso = true,
+                    periodo = periodo,
+                    
+                    performance = new
+                    {
+                        vendasTotais = 125680.50m,
+                        ticketMedio = 1580.25m,
+                        numeroVendas = 79,
+                        conversao = 34.5m,
+                        crescimento = 12.8m
+                    },
+                    
+                    vendedores = new[]
+                    {
+                        new { nome = "João Silva", vendas = 45680.50m, meta = 40000.00m, percentualMeta = 114.2m },
+                        new { nome = "Maria Santos", vendas = 38950.00m, meta = 35000.00m, percentualMeta = 111.3m },
+                        new { nome = "Pedro Costa", vendas = 41050.00m, meta = 45000.00m, percentualMeta = 91.2m }
+                    },
+                    
+                    produtos = new[]
+                    {
+                        new { nome = "Produto A", vendas = 28500.00m, quantidade = 18, margem = 35.5m },
+                        new { nome = "Produto B", vendas = 22300.00m, quantidade = 14, margem = 28.2m },
+                        new { nome = "Produto C", vendas = 18950.00m, quantidade = 12, margem = 42.1m }
+                    },
+                    
+                    canaisVenda = new[]
+                    {
+                        new { canal = "Loja Física", valor = 68500.00m, percentual = 54.5m },
+                        new { canal = "E-commerce", valor = 35680.50m, percentual = 28.4m },
+                        new { canal = "Telefone", valor = 21500.00m, percentual = 17.1m }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = ex.Message });
+            }
+        }
+
+        [HttpGet("dashboard/executivo")]
+        public ActionResult<object> DashboardExecutivo()
+        {
+            try
+            {
+                return Ok(new
+                {
+                    sucesso = true,
+                    ultimaAtualizacao = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
+                    
+                    kpis = new
+                    {
+                        receitaTotal = new { valor = 125680.50m, variacao = 12.5m, status = "positivo" },
+                        lucroLiquido = new { valor = 32450.20m, variacao = 8.3m, status = "positivo" },
+                        margem = new { valor = 25.8m, variacao = -2.1m, status = "negativo" },
+                        fluxoCaixa = new { valor = 45623.45m, variacao = 15.7m, status = "positivo" }
+                    },
+                    
+                    alertas = new[]
+                    {
+                        new { tipo = "critico", titulo = "Contas em Atraso", descricao = "3 contas com mais de 30 dias de atraso", valor = 4520.80m },
+                        new { tipo = "atencao", titulo = "Meta de Vendas", descricao = "Meta mensal em 87% - faltam 4 dias", valor = 13000.00m },
+                        new { tipo = "info", titulo = "Próximos Vencimentos", descricao = "5 contas vencem nos próximos 7 dias", valor = 8950.00m }
+                    ],
+                    
+                    graficos = new
+                    {
+                        faturamentoAnual = new[]
+                        {
+                            new { mes = "Jan", valor = 95500.00m },
+                            new { mes = "Fev", valor = 108200.00m },
+                            new { mes = "Mar", valor = 125680.50m }
+                        },
+                        
+                        despesasPorCategoria = new[]
+                        {
+                            new { categoria = "Fornecedores", valor = 45680.00m, percentual = 45.2m },
+                            new { categoria = "Impostos", valor = 25300.00m, percentual = 25.1m },
+                            new { categoria = "Salários", valor = 18500.00m, percentual = 18.3m },
+                            new { categoria = "Despesas Gerais", valor = 11520.00m, percentual = 11.4m }
+                        ]
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = ex.Message });
+            }
+        }
+
+        [HttpPost("exportar")]
+        public ActionResult<object> ExportarRelatorio([FromBody] object dadosExport)
+        {
+            try
+            {
+                var data = dadosExport as dynamic;
+                var tipoRelatorio = data?.tipo?.ToString() ?? "";
+                var formato = data?.formato?.ToString() ?? "pdf";
+                
+                // Simular geração de relatório
+                var nomeArquivo = $"relatorio_{tipoRelatorio}_{DateTime.Now:yyyyMMdd_HHmm}.{formato}";
+                var urlDownload = $"/downloads/{nomeArquivo}";
+                
+                return Ok(new
+                {
+                    sucesso = true,
+                    mensagem = "Relatório gerado com sucesso",
+                    arquivo = new
+                    {
+                        nome = nomeArquivo,
+                        url = urlDownload,
+                        tamanho = "2.4 MB",
+                        tipo = formato.ToUpper(),
+                        dataGeracao = DateTime.Now.ToString("dd/MM/yyyy HH:mm")
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = ex.Message });
+            }
+        }
+    }
+}
