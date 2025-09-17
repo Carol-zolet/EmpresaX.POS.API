@@ -1,0 +1,13 @@
+{
+    "AllowedHosts":  "*",
+    "ConnectionStrings":  {
+                              "DefaultConnection":  "Data Source=finance.db"
+                          },
+    "Logging":  {
+                    "LogLevel":  {
+                                     "Microsoft.AspNetCore":  "Warning",
+                                     "Default":  "Information"
+                                 }
+                }
+}
+

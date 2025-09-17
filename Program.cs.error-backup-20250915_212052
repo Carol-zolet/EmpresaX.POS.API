@@ -1,0 +1,142 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
+using System.Reflection;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Configuração de serviços
+builder.Services.AddControllers();
+
+// Entity Framework
+builder.Services.AddDbContext<DbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// AutoMapper (já está nas dependências)
+builder.Services.AddAutoMapper(typeof(Program));
+
+// CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
+
+// Swagger/OpenAPI
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "EmpresaX POS API",
+        Version = "v1",
+        Description = "API do Sistema POS da EmpresaX - Gestão Financeira e Comercial",
+        Contact = new OpenApiContact
+        {
+            Name = "EmpresaX Development Team",
+            Email = "dev@empresax.com"
+        }
+    });
+
+    // Configuração JWT para Swagger
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header usando Bearer scheme. Digite 'Bearer' [espaço] e então seu token.",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                },
+                Scheme = "oauth2",
+                Name = "Bearer",
+                In = ParameterLocation.Header,
+            },
+            new List<string>()
+        }
+    });
+
+    // Incluir comentários XML se existir
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        c.IncludeXmlComments(xmlPath);
+    }
+});
+
+// JWT Authentication (já nas dependências)
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes("sua-chave-secreta-aqui-deve-ter-pelo-menos-256-bits")),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "EmpresaX POS API v1");
+        c.RoutePrefix = "swagger";
+        c.DisplayRequestDuration();
+    });
+}
+
+app.UseHttpsRedirection();
+
+// CORS deve vir antes da autenticação
+app.UseCors("AllowAll");
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+// Endpoint raiz
+app.MapGet("/", () => Results.Ok(new { 
+    Message = "EmpresaX POS API is running successfully!", 
+    Version = "1.0.0",
+    Timestamp = DateTime.Now,
+    SwaggerDocs = "/swagger",
+    Controllers = new[] {
+        "Status - /api/status",
+        "Produtos - /api/produtos", 
+        "Vendas - /api/vendas",
+        "Contas - /api/contas",
+        "Usuarios - /api/usuarios",
+        "FluxoCaixa - /api/fluxocaixa",
+        "ConciliacaoBancaria - /api/conciliacaobancaria",
+        "Teste - /api/teste"
+    }
+}));
+
+app.Run();

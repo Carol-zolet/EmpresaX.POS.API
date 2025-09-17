@@ -1,0 +1,45 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace EmpresaX.POS.API.Controllers
+{
+    [ApiController]
+    [Route("api/v1/[controller]")]
+    [Authorize] // Requer autenticação
+    public class UsuariosController : ControllerBase
+    {
+        [HttpGet]
+        public IActionResult GetUsuarios()
+        {
+            var usuarios = new[]
+            {
+                new { Id = 1, Nome = "Admin", Email = "admin@empresax.com", Ativo = true },
+                new { Id = 2, Nome = "João Silva", Email = "joao@empresax.com", Ativo = true },
+                new { Id = 3, Nome = "Maria Santos", Email = "maria@empresax.com", Ativo = false }
+            };
+            
+            return Ok(new { 
+                Sucesso = true, 
+                Total = usuarios.Length,
+                Usuarios = usuarios 
+            });
+        }
+
+        [HttpGet("{id}")]
+        public IActionResult GetUsuario(int id)
+        {
+            var usuario = new { Id = id, Nome = $"Usuário {id}", Email = $"user{id}@empresax.com" };
+            return Ok(new { Sucesso = true, Usuario = usuario });
+        }
+
+        [HttpPost]
+        public IActionResult CreateUsuario([FromBody] dynamic userData)
+        {
+            return Ok(new { 
+                Sucesso = true, 
+                Mensagem = "Usuário criado com sucesso",
+                Id = new Random().Next(1000, 9999)
+            });
+        }
+    }
+}

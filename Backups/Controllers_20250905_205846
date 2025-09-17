@@ -1,0 +1,146 @@
+﻿using Microsoft.AspNetCore.Mvc;
+
+namespace EmpresaX.POS.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    [Produces("application/json")]
+    public class VendasController : ControllerBase
+    {
+        /// <summary>
+        /// Listar todas as vendas
+        /// </summary>
+        [HttpGet]
+        [ProducesResponseType(200)]
+        public IActionResult ListarVendas([FromQuery] int pagina = 1, [FromQuery] int limite = 10)
+        {
+            try
+            {
+                // Simulação de vendas para demonstração
+                var vendas = new[]
+                {
+                    new { id = 1, data = "2024-01-15", descricao = "Fechamento Janeiro 2024", valor = 28184.70m, status = "Finalizada" },
+                    new { id = 2, data = "2024-02-15", descricao = "Fechamento Fevereiro 2024", valor = 16690.15m, status = "Finalizada" },
+                    new { id = 3, data = "2024-03-15", descricao = "Fechamento Março 2024", valor = 23675.85m, status = "Finalizada" },
+                    new { id = 4, data = "2024-04-15", descricao = "Fechamento Abril 2024", valor = 26095.01m, status = "Finalizada" },
+                    new { id = 5, data = "2024-05-15", descricao = "Fechamento Maio 2024", valor = 23916.35m, status = "Finalizada" }
+                };
+
+                var total = vendas.Length;
+                var paginadas = vendas.Skip((pagina - 1) * limite).Take(limite);
+
+                return Ok(new
+                {
+                    sucesso = true,
+                    vendas = paginadas,
+                    paginacao = new
+                    {
+                        paginaAtual = pagina,
+                        totalPaginas = (int)Math.Ceiling((double)total / limite),
+                        totalVendas = total,
+                        limite
+                    },
+                    resumo = new
+                    {
+                        valorTotal = vendas.Sum(v => v.valor),
+                        valorTotalFormatado = $"R$ {vendas.Sum(v => v.valor):N2}"
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = $"Erro ao listar vendas: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Buscar venda específica por ID
+        /// </summary>
+        [HttpGet("{id}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public IActionResult BuscarVenda(int id)
+        {
+            try
+            {
+                // Simulação de busca por ID
+                var vendas = new[]
+                {
+                    new { id = 1, data = "2024-01-15", descricao = "Fechamento Janeiro 2024", valor = 28184.70m, status = "Finalizada", observacoes = "Movimento completo Janeiro - Total: R$ 28.184,70" },
+                    new { id = 2, data = "2024-02-15", descricao = "Fechamento Fevereiro 2024", valor = 16690.15m, status = "Finalizada", observacoes = "Movimento completo Fevereiro - Total: R$ 16.690,15" }
+                };
+
+                var venda = vendas.FirstOrDefault(v => v.id == id);
+
+                if (venda == null)
+                {
+                    return NotFound(new { erro = $"Venda com ID {id} não encontrada" });
+                }
+
+                return Ok(new
+                {
+                    sucesso = true,
+                    venda = new
+                    {
+                        venda.id,
+                        venda.data,
+                        venda.descricao,
+                        venda.valor,
+                        valorFormatado = $"R$ {venda.valor:N2}",
+                        venda.status,
+                        venda.observacoes,
+                        detalhes = new
+                        {
+                            formaPagamento = "Dinheiro",
+                            vendedor = "Sistema",
+                            dataInclusao = venda.data
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = $"Erro ao buscar venda: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Resumo das vendas
+        /// </summary>
+        [HttpGet("resumo")]
+        [ProducesResponseType(200)]
+        public IActionResult ResumoVendas()
+        {
+            try
+            {
+                return Ok(new
+                {
+                    sucesso = true,
+                    resumo = new
+                    {
+                        totalVendas = 10,
+                        valorTotal = 229783.22m,
+                        valorTotalFormatado = "R$ 229.783,22",
+                        periodo = "Janeiro a Novembro 2024",
+                        status = new
+                        {
+                            finalizadas = 10,
+                            pendentes = 0,
+                            canceladas = 0
+                        },
+                        melhorMes = new
+                        {
+                            mes = "Junho",
+                            valor = 29310.15m,
+                            valorFormatado = "R$ 29.310,15"
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = $"Erro no resumo: {ex.Message}" });
+            }
+        }
+    }
+}

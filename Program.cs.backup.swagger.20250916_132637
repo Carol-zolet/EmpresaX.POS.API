@@ -1,0 +1,179 @@
+﻿// ──────────────────────────────────────────────────────────────
+//  Program.cs – Startup "minimal" (já com JWT, CORS, Swagger, Serilog)
+// ──────────────────────────────────────────────────────────────
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Serilog;
+using System.Text;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
+using System.IO;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// ----------------- 1️⃣  Logging com Serilog  -----------------
+builder.Host.UseSerilog((hostingContext, loggerConfiguration) =>
+{
+    loggerConfiguration
+        .ReadFrom.Configuration(hostingContext.Configuration)
+        .Enrich.FromLogContext()
+        .WriteTo.Console()
+        .WriteTo.File("logs/empresax-pos-.txt", rollingInterval: RollingInterval.Day);
+});
+
+// ----------------- 2️⃣  Registro de serviços ----------------
+// 2.1  Controllers
+builder.Services.AddControllers();
+
+// 2.2  Swagger (com configuração JWT)
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    // Configurar OpenAPI Info
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "EmpresaX POS API",
+        Description = "API para Sistema de Ponto de Venda",
+        Contact = new OpenApiContact
+        {
+            Name = "EmpresaX",
+            Email = "contato@empresax.com"
+        }
+    });
+
+    // Configurar autenticação JWT
+    var securityScheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        BearerFormat = "JWT",
+        Scheme = "bearer",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Description = "Digite 'Bearer' seguido do seu token JWT",
+        Reference = new OpenApiReference
+        {
+            Id = "Bearer",
+            Type = ReferenceType.SecurityScheme
+        }
+    };
+    
+    c.AddSecurityDefinition("Bearer", securityScheme);
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        { securityScheme, new string[] { } }
+    });
+
+    // Incluir comentários XML se existir arquivo
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        c.IncludeXmlComments(xmlPath);
+    }
+});
+
+// 2.3  CORS
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        var origins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? new[] { "http://localhost:3000", "https://localhost:3001" };
+        policy.WithOrigins(origins)
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
+// 2.4  JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var jwtKey = builder.Configuration["Jwt:Key"] ?? "MinhaChaveSecretaSuperSegura123456789!";
+        var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "EmpresaX.POS.API";
+        var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "EmpresaX.POS.Client";
+        
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+var app = builder.Build();
+
+// ----------------- 3️⃣  Pipeline de requisições -----------------
+// 3.1  Middleware de desenvolvimento
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI(c => 
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "EmpresaX POS API v1");
+        c.RoutePrefix = "swagger";
+    });
+}
+else
+{
+    app.UseExceptionHandler("/Error");
+    app.UseHsts();
+}
+
+// 3.2  Middleware de segurança e CORS
+app.UseHttpsRedirection();
+app.UseCors();
+
+// 3.3  Autenticação e autorização
+app.UseAuthentication();
+app.UseAuthorization();
+
+// 3.4  Roteamento
+app.MapControllers();
+
+// 3.5  Endpoint de health check
+app.MapGet("/health", () => new
+{
+    status = "healthy",
+    timestamp = DateTime.UtcNow,
+    version = "1.0.0",
+    environment = app.Environment.EnvironmentName
+}).WithTags("Health").WithOpenApi();
+
+// 3.6  Endpoint root
+app.MapGet("/", () => new
+{
+    message = "EmpresaX POS API - Sistema funcionando",
+    version = "1.0.0",
+    endpoints = new
+    {
+        swagger = "/swagger",
+        health = "/health",
+        api = "/api/"
+    }
+}).WithTags("Root").WithOpenApi();
+
+try
+{
+    Log.Information("🚀 Iniciando EmpresaX POS API...");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "💥 Falha crítica na inicialização da API");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
+

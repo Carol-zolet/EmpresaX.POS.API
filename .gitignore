@@ -1,6 +1,4 @@
-# Arquivo .gitignore para um projeto .NET com Frontend (Node.js)
-
-# Binários e arquivos de compilação do .NET
+﻿# Binários e arquivos de compilação do .NET
 [Bb]in/
 [Oo]bj/
 
@@ -15,15 +13,13 @@
 *.mdf
 *.ldf
 
-# Logs e Backups
+# Logs, Backups e arquivos temporários
 [Ll]ogs/
 *.log
 *.bak
-*.backup
 *.old
-Program.cs.* # Ignora todos os backups de Program.cs
-appsettings.json.* # Ignora todos os backups de appsettings.json
-Backups/
+*backup*
+*.backup.*
 
 # Dependências do Node.js
 node_modules/

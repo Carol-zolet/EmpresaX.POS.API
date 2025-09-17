@@ -1,0 +1,432 @@
+﻿// API Base URL
+const API_BASE = 'http://localhost:5245/api';
+
+// Estado da aplicação
+let appData = {
+    fluxoCaixa: null,
+    contasPagar: [],
+    conciliacao: null,
+    loading: false
+};
+
+// Funções de navegação
+function showDashboard() {
+    setActiveMenu('Dashboard');
+    loadDashboard();
+}
+
+function showContasPagar() {
+    setActiveMenu('Contas a Pagar');
+    loadContasPagar();
+}
+
+function showFluxoCaixa() {
+    setActiveMenu('Fluxo de Caixa');
+    loadFluxoCaixa();
+}
+
+function showConciliacao() {
+    setActiveMenu('Conciliação');
+    loadConciliacao();
+}
+
+function setActiveMenu(title) {
+    // Remove active de todos
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+    });
+    
+    // Adiciona active no clicado
+    if(event && event.target) {
+        event.target.classList.add('active');
+    }
+}
+
+// Função para fazer requisições à API
+async function fetchAPI(endpoint) {
+    try {
+        const response = await fetch(API_BASE + endpoint);
+        if (!response.ok) {
+            throw new Error('Erro na requisição: ' + response.status);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Erro:', error);
+        showError('Erro ao carregar dados: ' + error.message);
+        return null;
+    }
+}
+
+// Dashboard principal
+async function loadDashboard() {
+    const content = document.getElementById('content');
+    content.innerHTML = `
+        <h1 class="mb-4">Dashboard Financeiro</h1>
+        
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card card-metric">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="metric-icon bg-success-gradient me-3">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-title mb-0">Saldo Atual</h6>
+                            <h4 class="mb-0" id="saldo-atual">Carregando...</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card card-metric">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="metric-icon bg-primary-gradient me-3">
+                            <i class="fas fa-file-invoice"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-title mb-0">Contas Pendentes</h6>
+                            <h4 class="mb-0" id="contas-pendentes">Carregando...</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card card-metric">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="metric-icon bg-warning-gradient me-3">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-title mb-0">Vencidas</h6>
+                            <h4 class="mb-0" id="contas-vencidas">Carregando...</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card card-metric">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="metric-icon bg-info-gradient me-3">
+                            <i class="fas fa-university"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-title mb-0">Contas Bancárias</h6>
+                            <h4 class="mb-0" id="contas-bancarias">Carregando...</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Fluxo de Caixa - Últimos 30 dias</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="fluxoChart" style="height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Contas Vencendo</h5>
+                    </div>
+                    <div class="card-body" id="contas-vencendo">
+                        Carregando...
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Carregar dados
+    await loadDashboardData();
+}
+
+async function loadDashboardData() {
+    // Carregar fluxo de caixa
+    const fluxo = await fetchAPI('/FluxoCaixa/posicao');
+    if (fluxo && fluxo.sucesso) {
+        document.getElementById('saldo-atual').textContent = fluxo.posicaoAtual.saldoAtualFormatado;
+    }
+    
+    // Carregar contas a pagar
+    const contas = await fetchAPI('/v1/contas-pagar');
+    if (contas && contas.sucesso) {
+        const pendentes = contas.contas.filter(c => c.status === 'Pendente').length;
+        const vencidas = contas.contas.filter(c => c.status === 'Vencida').length;
+        
+        document.getElementById('contas-pendentes').textContent = pendentes;
+        document.getElementById('contas-vencidas').textContent = vencidas;
+        
+        // Mostrar contas vencendo
+        const vencendo = contas.contas
+            .filter(c => c.status === 'Pendente')
+            .slice(0, 5);
+            
+        const vencendoHtml = vencendo.map(conta => 
+            '<div class="d-flex justify-content-between align-items-center mb-2">' +
+            '<div><strong>' + conta.fornecedor + '</strong><br>' +
+            '<small class="text-muted">' + conta.descricao + '</small></div>' +
+            '<div class="text-end">' +
+            '<strong>R$ ' + conta.valor + '</strong><br>' +
+            '<small class="text-danger">' + conta.vencimento + '</small>' +
+            '</div></div><hr>'
+        ).join('');
+        
+        document.getElementById('contas-vencendo').innerHTML = vencendoHtml || '<p class="text-muted">Nenhuma conta vencendo</p>';
+    }
+    
+    // Carregar conciliação
+    const conciliacao = await fetchAPI('/ConciliacaoBancaria/posicao');
+    if (conciliacao && conciliacao.sucesso) {
+        document.getElementById('contas-bancarias').textContent = conciliacao.contas.length;
+    }
+    
+    // Criar gráfico
+    createFluxoChart();
+}
+
+function createFluxoChart() {
+    const ctx = document.getElementById('fluxoChart');
+    if (!ctx) return;
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['1 Dez', '5 Dez', '10 Dez', '15 Dez', '20 Dez', '25 Dez', '30 Dez'],
+            datasets: [{
+                label: 'Saldo',
+                data: [45000, 47000, 44000, 46000, 45623, 48000, 47500],
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    ticks: {
+                        callback: function(value) {
+                            return 'R$ ' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Contas a Pagar
+async function loadContasPagar() {
+    const content = document.getElementById('content');
+    content.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Contas a Pagar</h1>
+            <button class="btn btn-primary" onclick="showNovaConta()">
+                <i class="fas fa-plus me-2"></i>Nova Conta
+            </button>
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Fornecedor</th>
+                                <th>Descrição</th>
+                                <th>Valor</th>
+                                <th>Vencimento</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contas-tbody">
+                            <tr><td colspan="6" class="text-center">Carregando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const contas = await fetchAPI('/v1/contas-pagar');
+    if (contas && contas.sucesso) {
+        renderContasPagar(contas.contas);
+    }
+}
+
+function renderContasPagar(contas) {
+    const tbody = document.getElementById('contas-tbody');
+    
+    if (contas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Nenhuma conta encontrada</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = contas.map(conta => 
+        '<tr>' +
+        '<td><strong>' + conta.fornecedor + '</strong></td>' +
+        '<td>' + conta.descricao + '</td>' +
+        '<td><strong>R$ ' + conta.valor + '</strong></td>' +
+        '<td>' + conta.vencimento + '</td>' +
+        '<td><span class="badge status-badge ' + getStatusClass(conta.status) + '">' + conta.status + '</span></td>' +
+        '<td>' +
+        '<button class="btn btn-sm btn-outline-primary me-1" onclick="editarConta(' + conta.id + ')"><i class="fas fa-edit"></i></button>' +
+        (conta.status === 'Pendente' ? '<button class="btn btn-sm btn-success me-1" onclick="pagarConta(' + conta.id + ')"><i class="fas fa-dollar-sign"></i></button>' : '') +
+        '<button class="btn btn-sm btn-outline-danger" onclick="excluirConta(' + conta.id + ')"><i class="fas fa-trash"></i></button>' +
+        '</td>' +
+        '</tr>'
+    ).join('');
+}
+
+function getStatusClass(status) {
+    switch(status) {
+        case 'Paga': return 'bg-success';
+        case 'Pendente': return 'bg-warning';
+        case 'Vencida': return 'bg-danger';
+        default: return 'bg-secondary';
+    }
+}
+
+// Fluxo de Caixa
+async function loadFluxoCaixa() {
+    const content = document.getElementById('content');
+    content.innerHTML = `
+        <h1 class="mb-4">Fluxo de Caixa</h1>
+        
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5>Posição Atual</h5>
+                        <h2 class="text-success" id="fluxo-saldo">Carregando...</h2>
+                        <small class="text-muted" id="fluxo-data">Carregando...</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Movimentações Recentes</h5>
+                    </div>
+                    <div class="card-body" id="fluxo-movimentacoes">
+                        Carregando...
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const fluxo = await fetchAPI('/FluxoCaixa/posicao');
+    if (fluxo && fluxo.sucesso) {
+        document.getElementById('fluxo-saldo').textContent = fluxo.posicaoAtual.saldoAtualFormatado;
+        document.getElementById('fluxo-data').textContent = new Date(fluxo.posicaoAtual.dataAtualizacao).toLocaleString();
+        
+        // Carregar movimentações
+        loadMovimentacoes();
+    }
+}
+
+async function loadMovimentacoes() {
+    const movimentacoes = await fetchAPI('/FluxoCaixa/movimentacoes');
+    if (movimentacoes && movimentacoes.sucesso) {
+        const movimentacoesHtml = movimentacoes.movimentacoes.slice(0, 10).map(mov => 
+            '<div class="d-flex justify-content-between align-items-center mb-2">' +
+            '<div><strong>' + mov.descricao + '</strong><br><small class="text-muted">' + mov.categoria + '</small></div>' +
+            '<div class="text-end">' +
+            '<strong class="' + (mov.tipo === 'Entrada' ? 'text-success' : 'text-danger') + '">' +
+            (mov.tipo === 'Entrada' ? '+' : '-') + ' ' + mov.valorFormatado +
+            '</strong><br><small class="text-muted">' + mov.data + '</small></div></div><hr>'
+        ).join('');
+        
+        document.getElementById('fluxo-movimentacoes').innerHTML = movimentacoesHtml || '<p class="text-muted">Nenhuma movimentação encontrada</p>';
+    }
+}
+
+// Conciliação Bancária
+async function loadConciliacao() {
+    const content = document.getElementById('content');
+    content.innerHTML = `
+        <h1 class="mb-4">Conciliação Bancária</h1>
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Contas Bancárias</h5>
+                    </div>
+                    <div class="card-body" id="contas-bancarias-list">
+                        Carregando...
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const conciliacao = await fetchAPI('/ConciliacaoBancaria/posicao');
+    if (conciliacao && conciliacao.sucesso) {
+        renderContasBancarias(conciliacao.contas);
+    }
+}
+
+function renderContasBancarias(contas) {
+    const container = document.getElementById('contas-bancarias-list');
+    
+    const contasHtml = contas.map(conta => 
+        '<div class="row mb-3">' +
+        '<div class="col-md-3"><strong>' + conta.banco + '</strong><br><small>Ag: ' + conta.agencia + ' | Conta: ' + conta.conta + '</small></div>' +
+        '<div class="col-md-3"><span class="badge bg-info">' + conta.tipo + '</span></div>' +
+        '<div class="col-md-3"><strong class="text-success">' + conta.saldoFormatado + '</strong></div>' +
+        '<div class="col-md-3"><button class="btn btn-sm btn-outline-primary"><i class="fas fa-sync me-1"></i>Conciliar</button></div>' +
+        '</div><hr>'
+    ).join('');
+    
+    container.innerHTML = contasHtml;
+}
+
+// Funções auxiliares
+function showError(message) {
+    console.error(message);
+    alert('Erro: ' + message);
+}
+
+function showNovaConta() {
+    alert('Funcionalidade de nova conta será implementada em breve!');
+}
+
+function editarConta(id) {
+    alert('Editar conta ID: ' + id + ' - Funcionalidade em desenvolvimento');
+}
+
+function pagarConta(id) {
+    if (confirm('Confirma o pagamento desta conta?')) {
+        alert('Conta ID: ' + id + ' marcada como paga! (Funcionalidade será implementada)');
+    }
+}
+
+function excluirConta(id) {
+    if (confirm('Tem certeza que deseja excluir esta conta?')) {
+        alert('Conta ID: ' + id + ' excluída! (Funcionalidade será implementada)');
+    }
+}
+
+// Inicializar aplicação
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Sistema Financeiro EmpresaX carregado!');
+    loadDashboard();
+});
+
