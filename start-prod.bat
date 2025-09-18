@@ -1,3 +1,0 @@
-@echo off
-echo Iniciando EmpresaX em modo otimizado...
-dotnet run --configuration Release --urls="http://localhost:5245" --no-hot-reload --no-restore

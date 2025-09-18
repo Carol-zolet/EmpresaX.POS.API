@@ -5,7 +5,9 @@ namespace EmpresaX.POS.API.Services
 {
     public interface IProdutosService
     {
-        // Adicionamos a assinatura do método que o teste precisa
         Task<ProdutoDto?> GetByIdAsync(int id);
+        Task<ProdutoDto> CreateAsync(CreateProdutoDto produto);
+        Task UpdateAsync(int id, UpdateProdutoDto produto);
+        Task DeleteAsync(int id); // Garante que esta linha existe
     }
 }
