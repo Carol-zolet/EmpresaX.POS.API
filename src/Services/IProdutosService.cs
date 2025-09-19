@@ -8,6 +8,6 @@ namespace EmpresaX.POS.API.Services
         Task<ProdutoDto?> GetByIdAsync(int id);
         Task<ProdutoDto> CreateAsync(CreateProdutoDto produto);
         Task UpdateAsync(int id, UpdateProdutoDto produto);
-        Task DeleteAsync(int id); // Garante que esta linha existe
+        Task DeleteAsync(int id);
     }
 }

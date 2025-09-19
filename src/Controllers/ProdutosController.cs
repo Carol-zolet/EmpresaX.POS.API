@@ -48,19 +48,15 @@ namespace EmpresaX.POS.API.Controllers
             catch (KeyNotFoundException) { return NotFound(); }
         }
 
-        // --- MÉTODO DELETE ADICIONADO ---
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
                 await _service.DeleteAsync(id);
-                return NoContent(); // Sucesso
+                return NoContent();
             }
-            catch (KeyNotFoundException)
-            {
-                return NotFound(); // Recurso não encontrado
-            }
+            catch (KeyNotFoundException) { return NotFound(); }
         }
     }
 }
