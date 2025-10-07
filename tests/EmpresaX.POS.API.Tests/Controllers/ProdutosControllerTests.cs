@@ -14,13 +14,13 @@ namespace EmpresaX.POS.API.Tests.Controllers
 {
     public class ProdutosControllerTests
     {
-        private readonly Mock<IProdutosService> _serviceMock;
+        private readonly Mock<IProdutoService> _serviceMock;
         private readonly Mock<ILogger<ProdutosController>> _loggerMock;
         private readonly ProdutosController _controller;
 
         public ProdutosControllerTests()
         {
-            _serviceMock = new Mock<IProdutosService>();
+            _serviceMock = new Mock<IProdutoService>();
             _loggerMock = new Mock<ILogger<ProdutosController>>();
             _controller = new ProdutosController(_serviceMock.Object, _loggerMock.Object);
         }
@@ -110,3 +110,4 @@ namespace EmpresaX.POS.API.Tests.Controllers
         }
     }
 }
+

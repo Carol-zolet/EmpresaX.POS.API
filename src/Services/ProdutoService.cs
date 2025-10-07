@@ -4,7 +4,7 @@ using EmpresaX.POS.API.Modelos.DTOs;
 
 namespace EmpresaX.POS.API.Services
 {
-    public class ProdutoService : IProdutosService
+    public class ProdutoService : IProdutoService
     {
         // No futuro, você injetará seu DbContext aqui para falar com o banco de dados.
         // private readonly SeuDbContext _context;

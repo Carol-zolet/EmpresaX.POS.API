@@ -11,10 +11,10 @@ namespace EmpresaX.POS.API.Controllers
     [Route("api/[controller]")]
     public class CategoriasController : ControllerBase
     {
-        private readonly ICategoriasService _service;
+        private readonly ICategoriaService _service;
         private readonly ILogger<CategoriasController> _logger;
 
-        public CategoriasController(ICategoriasService service, ILogger<CategoriasController> logger)
+        public CategoriasController(ICategoriaService service, ILogger<CategoriasController> logger)
         {
             _service = service;
             _logger = logger;

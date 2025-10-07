@@ -11,10 +11,10 @@ namespace EmpresaX.POS.API.Controllers
     [Route("api/[controller]")]
     public class ProdutosController : ControllerBase
     {
-        private readonly IProdutosService _service;
+        private readonly IProdutoService _service;
         private readonly ILogger<ProdutosController> _logger;
 
-        public ProdutosController(IProdutosService service, ILogger<ProdutosController> logger)
+        public ProdutosController(IProdutoService service, ILogger<ProdutosController> logger)
         {
             _service = service;
             _logger = logger;

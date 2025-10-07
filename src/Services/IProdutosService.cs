@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace EmpresaX.POS.API.Services
 {
-    public interface IProdutosService
+    public interface IProdutoService
     {
         Task<ProdutoDto?> GetByIdAsync(int id);
         Task<ProdutoDto> CreateAsync(CreateProdutoDto produto);

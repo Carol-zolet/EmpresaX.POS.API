@@ -1,41 +1,43 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Text;
-using Microsoft.OpenApi.Models;
+using EmpresaX.POS.API.Data;
 using EmpresaX.POS.API.Services;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 // ===============================================================
-// 1. CRIA√á√ÉO DO BUILDER
+// 1. CRIA«√O DO BUILDER E CONFIGURA«√O INICIAL
 // ===============================================================
 var builder = WebApplication.CreateBuilder(args);
 
+// ConfiguraÁ„o do Serilog
+builder.Host.UseSerilog((context, config) => config.ReadFrom.Configuration(context.Configuration));
+
+// ConfiguraÁ„o do Kestrel para escutar na porta 5245 com HTTPS
+builder.WebHost.ConfigureKestrel(options => options.ListenAnyIP(5245, listenOptions => listenOptions.UseHttps()));
+
 
 // ===============================================================
-// 2. CONFIGURA√á√ÉO DE SERVI√áOS (Inje√ß√£o de Depend√™ncia)
+// 2. CONFIGURA«√O DE SERVI«OS (InjeÁ„o de DependÍncia)
 // ===============================================================
 
-// Configura√ß√£o do Kestrel e Serilog
-builder.WebHost.ConfigureKestrel(options =>
-{
-    options.ListenAnyIP(5245, listenOptions =>
-    {
-        listenOptions.UseHttps();
-    });
-});
-builder.Host.UseSerilog((context, logger) =>
-{
-    logger.ReadFrom.Configuration(context.Configuration);
-});
+// Garante que a string de conex„o existe antes de continuar
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+    ?? throw new InvalidOperationException("A string de conex„o 'DefaultConnection' n„o foi encontrada.");
 
-// Adiciona servi√ßos essenciais do ASP.NET Core
+// Adiciona o DbContext para PostgreSQL
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-
-// Configura√ß√£o do AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
 
-// Configura√ß√£o do Swagger... (c√≥digo do swagger continua o mesmo)
+// ConfiguraÁ„o do Swagger com suporte para autenticaÁ„o JWT
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "EmpresaX.POS.API", Version = "v1" });
@@ -46,7 +48,7 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Insira 'Bearer' [espa√ßo] e ent√£o seu token."
+        Description = "Insira 'Bearer' [espaÁo] e ent„o seu token."
     });
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
@@ -60,26 +62,21 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Configura√ß√£o do CORS... (c√≥digo do CORS continua o mesmo)
+// ConfiguraÁ„o do CORS
 builder.Services.AddCors(options =>
 {
     var policyName = builder.Configuration["Cors:PolicyName"] ?? "DefaultPolicy";
-    options.AddPolicy(policyName, policy =>
-    {
+    options.AddPolicy(policyName, policy => {
         var origins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? new[] { "http://localhost:3000" };
-        policy.WithOrigins(origins)
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
     });
 });
 
-// Configura√ß√£o de Autentica√ß√£o JWT... (c√≥digo do JWT continua o mesmo)
+// ConfiguraÁ„o de AutenticaÁ„o JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
+    .AddJwtBearer(options => {
         var jwtKey = builder.Configuration["Jwt:Key"] ?? "MinhaChaveSecretaSuperSegura123456789!";
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
+        options.TokenValidationParameters = new TokenValidationParameters {
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
             ValidateIssuer = false,
@@ -88,47 +85,63 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorization();
 
-// Registro dos seus servi√ßos de neg√≥cio
-builder.Services.AddScoped<IProdutosService, ProdutoService>();
-builder.Services.AddScoped<ICategoriasService, CategoriaService>(); // <-- Apenas uma linha, a correta
-// TODO: Adicionar outros servi√ßos aqui (IContaService, etc.)
+// Registro dos seus serviÁos de negÛcio
+builder.Services.AddScoped<IProdutoService, ProdutoService>();
+builder.Services.AddScoped<ICategoriaService, CategoriaService>();
+// builder.Services.AddScoped<IContaService, ContaService>();
+// builder.Services.AddScoped<IAuthService, AuthService>();
+
+// ServiÁo de Health Checks
+builder.Services.AddHealthChecks()
+   .AddNpgSql(connectionString, name: "PostgreSQL");
 
 
 // ===============================================================
-// 3. CONSTRU√á√ÉO DA APLICA√á√ÉO (builder.Build)
+// 3. CONSTRU«√O DA APLICA«√O
 // ===============================================================
 var app = builder.Build();
 
 
 // ===============================================================
-// 4. CONFIGURA√á√ÉO DO PIPELINE HTTP (c√≥digo do pipeline continua o mesmo)
+// 4. CONFIGURA«√O DO PIPELINE HTTP
 // ===============================================================
+app.UseSerilogRequestLogging();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "EmpresaX POS API v1"));
+    app.UseSwaggerUI();
 }
-// ... (resto do arquivo √© o mesmo)
+
 app.UseHttpsRedirection();
+
 var policyNameToUse = builder.Configuration["Cors:PolicyName"] ?? "DefaultPolicy";
 app.UseCors(policyNameToUse);
+
+// A ordem È importante: AutenticaÁ„o ANTES de AutorizaÁ„o
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
-app.MapGet("/health", () => Results.Ok(new { status = "healthy" })).WithTags("Health");
+
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+}).WithTags("Health");
+
 
 // ===============================================================
-// 5. EXECU√á√ÉO DA APLICA√á√ÉO (c√≥digo de execu√ß√£o continua o mesmo)
+// 5. EXECU«√O DA APLICA«√O
 // ===============================================================
 try
 {
-    Log.Information("üöÄ Iniciando EmpresaX POS API...");
+    Log.Information("?? Iniciando EmpresaX POS API...");
     app.Run();
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "üí• Falha cr√≠tica na inicializa√ß√£o da API");
+    Log.Fatal(ex, "?? Falha crÌtica na inicializaÁ„o da API");
 }
 finally
 {

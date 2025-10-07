@@ -1,18 +1,18 @@
 using AutoMapper;
-using InfraConta = EmpresaX.POS.Infrastructure.Conta;
-using EmpresaX.POS.API.Controllers;
+using EmpresaX.POS.API.Domain.Entities;
 using EmpresaX.POS.API.Modelos.DTOs;
 
-namespace EmpresaX.POS.API.Mapping
+public class MappingProfile : Profile
 {
-    public class MappingProfile : Profile
+    public MappingProfile()
     {
-        public MappingProfile()
-        {
-            CreateMap<InfraConta, ContaDto>()
-                .ForMember(dest => dest.Descricao, opt => opt.MapFrom(src => src.Nome))
-                .ForMember(dest => dest.Valor, opt => opt.MapFrom(src => src.Saldo))
-                .ForMember(dest => dest.DataVencimento, opt => opt.MapFrom(src => DateTime.Now.AddDays(30)));
-        }
+        // Mapeamentos para Produto
+        CreateMap<Produto, ProdutoDto>();
+        CreateMap<CreateProdutoDto, Produto>();
+        CreateMap<UpdateProdutoDto, Produto>();
+
+        // Mapeamentos para Categoria
+        CreateMap<Categoria, CategoriaDto>();
+        CreateMap<CreateCategoriaDto, Categoria>();
     }
 }

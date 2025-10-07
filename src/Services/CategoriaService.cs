@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace EmpresaX.POS.API.Services
 {
-    public class CategoriaService : ICategoriasService
+    public class CategoriaService : ICategoriaService
     {
         // Simulação de dados em memória
         private readonly List<CategoriaDto> _categorias = new List<CategoriaDto>

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace EmpresaX.POS.API.Services
 {
-    public interface ICategoriasService
+    public interface ICategoriaService
     {
         Task<IEnumerable<CategoriaDto>> GetAllAsync();
         Task<CategoriaDto?> GetByIdAsync(int id);
