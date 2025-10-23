@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace EmpresaX.POS.API.Models
 {
@@ -112,3 +112,5 @@ namespace EmpresaX.POS.API.Models
         LimiteUsuarios = 14
     }
 }
+
+

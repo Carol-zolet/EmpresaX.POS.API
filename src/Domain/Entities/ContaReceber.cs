@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EmpresaX.POS.Domain.Entities
@@ -41,3 +41,5 @@ namespace EmpresaX.POS.Domain.Entities
         public virtual Venda? Venda { get; set; }
     }
 }
+
+

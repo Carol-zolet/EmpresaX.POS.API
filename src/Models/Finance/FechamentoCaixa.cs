@@ -47,3 +47,5 @@ namespace EmpresaX.POS.API.Models.Finance
         Conciliado = 2
     }
 }
+
+

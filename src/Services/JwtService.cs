@@ -1,4 +1,4 @@
-Ôªøusing Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -59,7 +59,7 @@ namespace EmpresaX.POS.API.Services
             var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);
             
-            _logger.LogInformation($"Token JWT gerado para usu√°rio: {usuario}");
+            _logger.LogInformation($"Token JWT gerado para usu·rio: {usuario}");
             
             return tokenHandler.WriteToken(token);
         }
@@ -89,7 +89,7 @@ namespace EmpresaX.POS.API.Services
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Token inv√°lido: {ex.Message}");
+                _logger.LogWarning($"Token inv·lido: {ex.Message}");
                 return false;
             }
         }
@@ -126,3 +126,5 @@ namespace EmpresaX.POS.API.Services
         }
     }
 }
+
+

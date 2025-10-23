@@ -60,3 +60,5 @@ namespace EmpresaX.POS.API.Controllers
         }
     }
 }
+
+

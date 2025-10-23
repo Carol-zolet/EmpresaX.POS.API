@@ -1,4 +1,4 @@
-﻿namespace EmpresaX.POS.API.Models.Finance
+namespace EmpresaX.POS.API.Models.Finance
 {
     public class ContaDto
     {
@@ -17,3 +17,5 @@
         public decimal Saldo { get; set; }
     }
 }
+
+

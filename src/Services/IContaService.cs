@@ -8,6 +8,9 @@ namespace EmpresaX.POS.API.Services
         Task<IEnumerable<ContaDto>> GetAllAsync();
         Task<ContaDto?> GetByIdAsync(int id);
         Task<ContaDto> CreateAsync(CreateContaDto conta);
-        // TODO: Adicionar assinaturas para Update e Delete
+    Task UpdateAsync(int id, ContaDto conta);
+    Task DeleteAsync(int id);
     }
 }
+
+

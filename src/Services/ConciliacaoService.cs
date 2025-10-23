@@ -1,4 +1,4 @@
-﻿using EmpresaX.POS.API.Models;
+using EmpresaX.POS.API.Models;
 
 namespace EmpresaX.POS.API.Services
 {
@@ -33,3 +33,5 @@ namespace EmpresaX.POS.API.Services
         }
     }
 }
+
+

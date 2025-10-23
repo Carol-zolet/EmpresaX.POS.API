@@ -14,3 +14,4 @@ namespace EmpresaX.POS.API.Domain.Entities
         public ProdutoMetadata Metadata { get; set; } = new();
     }
 }
+

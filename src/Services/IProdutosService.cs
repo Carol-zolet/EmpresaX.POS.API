@@ -11,3 +11,5 @@ namespace EmpresaX.POS.API.Services
         Task DeleteAsync(int id);
     }
 }
+
+

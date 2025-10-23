@@ -8,3 +8,5 @@ namespace EmpresaX.POS.API.Modelos.DTOs
         public int Estoque { get; set; }
     }
 }
+
+

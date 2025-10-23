@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace EmpresaX.POS.Domain.Entities
 {
@@ -30,3 +30,5 @@ namespace EmpresaX.POS.Domain.Entities
         public virtual ICollection<ContaPagar> ContasPagar { get; set; } = new List<ContaPagar>();
     }
 }
+
+

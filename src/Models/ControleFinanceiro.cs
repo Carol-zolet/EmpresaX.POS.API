@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EmpresaX.POS.API.Models
@@ -172,3 +172,5 @@ namespace EmpresaX.POS.API.Models
         Manual = 4
     }
 }
+
+

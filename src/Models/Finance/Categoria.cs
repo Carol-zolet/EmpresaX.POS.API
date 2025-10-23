@@ -30,3 +30,5 @@ namespace EmpresaX.POS.API.Models.Finance
         Despesa = 1
     }
 }
+
+

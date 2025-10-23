@@ -4,43 +4,65 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Text;
-using EmpresaX.POS.API.Data;
+using EmpresaX.POS.Infrastructure.Data;
 using EmpresaX.POS.API.Services;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 // ===============================================================
-// 1. CRIAÇÃO DO BUILDER E CONFIGURAÇÃO INICIAL
+// 1. CRIAï¿½ï¿½O DO BUILDER E CONFIGURAï¿½ï¿½O INICIAL
 // ===============================================================
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuração do Serilog
+// Configuraï¿½ï¿½o do Serilog
 builder.Host.UseSerilog((context, config) => config.ReadFrom.Configuration(context.Configuration));
 
-// Configuração do Kestrel para escutar na porta 5245 com HTTPS
-builder.WebHost.ConfigureKestrel(options => options.ListenAnyIP(5245, listenOptions => listenOptions.UseHttps()));
+// Em desenvolvimento, utilize Kestrel na porta 5245 com HTTPS local.
+// Em produÃ§Ã£o (Azure/App Service/containers), nÃ£o force a porta: respeite ASPNETCORE_URLS.
+if (builder.Environment.IsDevelopment())
+{
+    builder.WebHost.ConfigureKestrel(options =>
+        options.ListenAnyIP(5245, listenOptions => listenOptions.UseHttps()));
+}
 
 
 // ===============================================================
-// 2. CONFIGURAÇÃO DE SERVIÇOS (Injeção de Dependência)
+// 2. CONFIGURAï¿½ï¿½O DE SERVIï¿½OS (Injeï¿½ï¿½o de Dependï¿½ncia)
 // ===============================================================
 
-// Garante que a string de conexão existe antes de continuar
+// Garante que a string de conexï¿½o existe antes de continuar
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-    ?? throw new InvalidOperationException("A string de conexão 'DefaultConnection' não foi encontrada.");
+    ?? throw new InvalidOperationException("A string de conexï¿½o 'DefaultConnection' nï¿½o foi encontrada.");
 
 // Adiciona o DbContext para PostgreSQL
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
+builder.Services.AddScoped<ICaixaService, CaixaService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddAutoMapper(typeof(Program));
 
-// Configuração do Swagger com suporte para autenticação JWT
+// Configuraï¿½ï¿½o do Swagger com suporte para autenticaï¿½ï¿½o JWT
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "EmpresaX.POS.API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo 
+    { 
+        Title = "EmpresaX POS API", 
+        Version = "v1",
+        Description = "API RESTful para sistema de Ponto de Venda com gestÃ£o financeira completa",
+        Contact = new OpenApiContact
+        {
+            Name = "EmpresaX Support",
+            Email = "support@empresax.com"
+        },
+        License = new OpenApiLicense
+        {
+            Name = "MIT License",
+            Url = new Uri("https://opensource.org/licenses/MIT")
+        }
+    });
+    
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -48,8 +70,9 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Insira 'Bearer' [espaço] e então seu token."
+        Description = "Insira 'Bearer' [espaÃ§o] e entÃ£o seu token JWT. Exemplo: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'"
     });
+    
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -60,9 +83,21 @@ builder.Services.AddSwaggerGen(c =>
             new string[] {}
         }
     });
+    
+    // Habilitar comentÃ¡rios XML para documentaÃ§Ã£o detalhada
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        c.IncludeXmlComments(xmlPath);
+    }
+    
+    // Tags para organizaÃ§Ã£o dos endpoints
+    c.TagActionsBy(api => new[] { api.GroupName ?? api.ActionDescriptor.RouteValues["controller"] });
+    c.DocInclusionPredicate((name, api) => true);
 });
 
-// Configuração do CORS
+// Configuraï¿½ï¿½o do CORS
 builder.Services.AddCors(options =>
 {
     var policyName = builder.Configuration["Cors:PolicyName"] ?? "DefaultPolicy";
@@ -72,7 +107,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Configuração de Autenticação JWT
+// Configuraï¿½ï¿½o de Autenticaï¿½ï¿½o JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options => {
         var jwtKey = builder.Configuration["Jwt:Key"] ?? "MinhaChaveSecretaSuperSegura123456789!";
@@ -85,33 +120,49 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorization();
 
-// Registro dos seus serviços de negócio
+// Registro dos seus serviï¿½os de negï¿½cio
 builder.Services.AddScoped<IProdutoService, ProdutoService>();
 builder.Services.AddScoped<ICategoriaService, CategoriaService>();
-// builder.Services.AddScoped<IContaService, ContaService>();
+builder.Services.AddScoped<IImportacaoService, ImportacaoService>();
+builder.Services.AddScoped<IContaService, ContaService>();
 // builder.Services.AddScoped<IAuthService, AuthService>();
 
-// Serviço de Health Checks
+// Serviï¿½os de Monitoramento
+builder.Services.AddSingleton<PerformanceMetricsService>();
+
+// Serviï¿½o de Health Checks
 builder.Services.AddHealthChecks()
    .AddNpgSql(connectionString, name: "PostgreSQL");
 
 
 // ===============================================================
-// 3. CONSTRUÇÃO DA APLICAÇÃO
+// 3. CONSTRUï¿½ï¿½O DA APLICAï¿½ï¿½O
 // ===============================================================
 var app = builder.Build();
 
 
 // ===============================================================
-// 4. CONFIGURAÇÃO DO PIPELINE HTTP
+// 4. CONFIGURAï¿½ï¿½O DO PIPELINE HTTP
 // ===============================================================
+
+// Middleware de tratamento de exceÃ§Ãµes (deve ser o primeiro)
+app.UseMiddleware<EmpresaX.POS.API.Middleware.ExceptionHandlingMiddleware>();
+
+// Middleware de logging de requisiÃ§Ãµes
+app.UseMiddleware<EmpresaX.POS.API.Middleware.RequestLoggingMiddleware>();
+
 app.UseSerilogRequestLogging();
 
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "EmpresaX POS API v1");
+        c.RoutePrefix = "swagger";
+        c.DocumentTitle = "EmpresaX POS API - DocumentaÃ§Ã£o";
+    });
 }
 
 app.UseHttpsRedirection();
@@ -119,7 +170,7 @@ app.UseHttpsRedirection();
 var policyNameToUse = builder.Configuration["Cors:PolicyName"] ?? "DefaultPolicy";
 app.UseCors(policyNameToUse);
 
-// A ordem é importante: Autenticação ANTES de Autorização
+// A ordem ï¿½ importante: Autenticaï¿½ï¿½o ANTES de Autorizaï¿½ï¿½o
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -132,7 +183,7 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 
 
 // ===============================================================
-// 5. EXECUÇÃO DA APLICAÇÃO
+// 5. EXECUï¿½ï¿½O DA APLICAï¿½ï¿½O
 // ===============================================================
 try
 {
@@ -141,9 +192,15 @@ try
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "?? Falha crítica na inicialização da API");
+    Log.Fatal(ex, "?? Falha crï¿½tica na inicializaï¿½ï¿½o da API");
 }
 finally
 {
     Log.CloseAndFlush();
 }
+
+// Torna a classe Program acessÃ­vel para testes de integraÃ§Ã£o
+public partial class Program { }
+
+
+

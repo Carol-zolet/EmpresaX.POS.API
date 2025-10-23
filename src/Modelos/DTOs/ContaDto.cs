@@ -9,3 +9,5 @@ namespace EmpresaX.POS.API.Modelos.DTOs
         public bool Pago { get; set; }
     }
 }
+
+

@@ -1,4 +1,4 @@
-ï»¿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EmpresaX.POS.Domain.Entities
@@ -26,7 +26,7 @@ namespace EmpresaX.POS.Domain.Entities
         
         [Required]
         [StringLength(20)]
-        public string Tipo { get; set; } = string.Empty; // DÃ©bito, CrÃ©dito
+        public string Tipo { get; set; } = string.Empty; // Débito, Crédito
         
         public bool Conciliado { get; set; } = false;
         
@@ -41,3 +41,5 @@ namespace EmpresaX.POS.Domain.Entities
         public virtual ContaBancaria ContaBancaria { get; set; } = null!;
     }
 }
+
+

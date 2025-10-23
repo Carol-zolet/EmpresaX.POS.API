@@ -42,3 +42,5 @@ namespace EmpresaX.POS.API.Models.Finance
         Investimento = 3
     }
 }
+
+

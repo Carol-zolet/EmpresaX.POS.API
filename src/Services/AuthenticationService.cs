@@ -1,4 +1,4 @@
-ï»¿using Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -41,8 +41,10 @@ namespace EmpresaX.POS.API.Services
 
         public bool ValidateCredentials(string login, string senha)
         {
-            // ValidaÃ§Ã£o simples para teste
+            // Validação simples para teste
             return login == "admin" && senha == "admin123";
         }
     }
 }
+
+

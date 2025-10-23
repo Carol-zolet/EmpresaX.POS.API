@@ -9,3 +9,5 @@ namespace EmpresaX.POS.API.Domain.Entities
         public string? Material { get; set; }
     }
 }
+
+

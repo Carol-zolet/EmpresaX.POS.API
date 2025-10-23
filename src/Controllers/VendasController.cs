@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EmpresaX.POS.API.Controllers
 {
@@ -11,7 +11,7 @@ namespace EmpresaX.POS.API.Controllers
         {
             var vendas = new[]
             {
-                new { Id = 1, Data = DateTime.Today, Cliente = "João Silva", Valor = 299.90m, Status = "Finalizada" },
+                new { Id = 1, Data = DateTime.Today, Cliente = "Jo�o Silva", Valor = 299.90m, Status = "Finalizada" },
                 new { Id = 2, Data = DateTime.Today.AddDays(-1), Cliente = "Maria Santos", Valor = 1450.00m, Status = "Finalizada" }
             };
             
@@ -31,3 +31,5 @@ namespace EmpresaX.POS.API.Controllers
         }
     }
 }
+
+

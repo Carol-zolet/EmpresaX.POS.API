@@ -1,4 +1,4 @@
-Ôªøusing Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using EmpresaX.POS.Domain.Entities;
 
 namespace EmpresaX.POS.Infrastructure.Data
@@ -22,7 +22,7 @@ namespace EmpresaX.POS.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configura√ß√µes de relacionamentos
+            // ConfiguraÁıes de relacionamentos
             modelBuilder.Entity<ContaPagar>()
                 .HasOne(cp => cp.Fornecedor)
                 .WithMany(f => f.ContasPagar)
@@ -47,7 +47,7 @@ namespace EmpresaX.POS.Infrastructure.Data
                 .HasForeignKey(mb => mb.ContaBancariaId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // √çndices para performance
+            // Õndices para performance
             modelBuilder.Entity<ContaPagar>()
                 .HasIndex(cp => cp.DataVencimento);
 
@@ -65,3 +65,5 @@ namespace EmpresaX.POS.Infrastructure.Data
         }
     }
 }
+
+

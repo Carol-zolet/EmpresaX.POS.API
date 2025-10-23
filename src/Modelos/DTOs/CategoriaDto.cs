@@ -6,3 +6,5 @@ namespace EmpresaX.POS.API.Modelos.DTOs
         public string? Nome { get; set; }
     }
 }
+
+

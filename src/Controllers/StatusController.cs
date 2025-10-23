@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EmpresaX.POS.API.Controllers
 {
@@ -13,3 +13,5 @@ namespace EmpresaX.POS.API.Controllers
         }
     }
 }
+
+

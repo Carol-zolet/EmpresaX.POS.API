@@ -49,3 +49,5 @@ namespace EmpresaX.POS.API.Models.Finance
         Saida = 1
     }
 }
+
+

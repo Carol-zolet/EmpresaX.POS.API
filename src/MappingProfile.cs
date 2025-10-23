@@ -1,5 +1,5 @@
 using AutoMapper;
-using EmpresaX.POS.API.Domain.Entities;
+using EmpresaX.POS.Domain.Entities;
 using EmpresaX.POS.API.Modelos.DTOs;
 
 public class MappingProfile : Profile
@@ -16,3 +16,4 @@ public class MappingProfile : Profile
         CreateMap<CreateCategoriaDto, Categoria>();
     }
 }
+

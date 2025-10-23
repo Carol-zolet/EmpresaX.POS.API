@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmpresaX - Sistema Financeiro</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/dashboard.css" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#"><i class="fas fa-chart-line me-2"></i>EmpresaX Financeiro</a>
+                <div class="navbar-nav ms-auto">
+                    <span class="navbar-text text-white">
+                        <i class="fas fa-user me-1"></i>Admin
+                    </span>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="container-fluid" style="margin-top: 70px;">
+            <div class="row">
+                <nav class="col-md-2 d-md-block bg-light sidebar">
+                    <div class="sidebar-sticky pt-3">
+                                                <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="#" onclick="showDashboard()">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#" onclick="showContasPagar()">
+                                    <i class="fas fa-file-invoice-dollar me-2"></i>Contas a Pagar
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#" onclick="showFluxoCaixa()">
+                                    <i class="fas fa-money-bill-wave me-2"></i>Fluxo de Caixa
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#" onclick="showConciliacao()">
+                                    <i class="fas fa-university me-2"></i>Conciliação
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+                
+                <main class="col-md-10 ms-sm-auto px-md-4">
+                    <div id="content">
+                        <!-- Conteúdo será carregado aqui -->
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
+
+

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EmpresaX.POS.API.Controllers
 {
@@ -58,7 +58,7 @@ namespace EmpresaX.POS.API.Controllers
                 {
                     new { id = 1, descricao = "Pagamento fornecedor ABC", valor = -1250.00m, data = DateTime.Now.AddDays(-1), tipo = "Saida" },
                     new { id = 2, descricao = "Recebimento cliente XYZ", valor = 3500.00m, data = DateTime.Now.AddDays(-2), tipo = "Entrada" },
-                    new { id = 3, descricao = "Pagamento energia elétrica", valor = -850.30m, data = DateTime.Now.AddDays(-3), tipo = "Saida" }
+                    new { id = 3, descricao = "Pagamento energia el�trica", valor = -850.30m, data = DateTime.Now.AddDays(-3), tipo = "Saida" }
                 };
 
                 return Ok(new { sucesso = true, movimentacoes = movimentacoes.Take(take) });
@@ -77,3 +77,5 @@ namespace EmpresaX.POS.API.Controllers
         public string Observacoes { get; set; } = string.Empty;
     }
 }
+
+

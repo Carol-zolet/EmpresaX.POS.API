@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EmpresaX.POS.API.Controllers
 {
@@ -10,7 +10,7 @@ namespace EmpresaX.POS.API.Controllers
             var totalItems = dataList.Count;
             var paginatedData = dataList.Skip(skip).Take(take).ToList();
             
-            // Adicionar header com total (padrão EVO) - CORRIGIDO: usando Append em vez de Add
+            // Adicionar header com total (padr�o EVO) - CORRIGIDO: usando Append em vez de Add
             Response.Headers.Append("X-Total-Count", totalItems.ToString());
             
             return new
@@ -30,3 +30,4 @@ namespace EmpresaX.POS.API.Controllers
         }
     }
 }
+

@@ -6,3 +6,4 @@ namespace EmpresaX.POS.API.Domain.Entities // <-- Garante que o namespace está 
         public string? Nome { get; set; }
     }
 }
+

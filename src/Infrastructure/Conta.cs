@@ -1,4 +1,4 @@
-﻿namespace EmpresaX.POS.Infrastructure
+namespace EmpresaX.POS.Infrastructure
 {
     public class Conta
     {
@@ -11,3 +11,5 @@
         public bool Ativo { get; set; } = true;
     }
 }
+
+

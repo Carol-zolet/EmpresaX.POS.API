@@ -1,4 +1,4 @@
-﻿namespace EmpresaX.POS.API.Models
+namespace EmpresaX.POS.API.Models
 {
     public class Conta
     {
@@ -8,3 +8,5 @@
         public DateTime DataCriacao { get; set; }
     }
 }
+
+
