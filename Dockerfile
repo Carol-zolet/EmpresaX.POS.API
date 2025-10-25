@@ -11,6 +11,6 @@ RUN dotnet publish src/EmpresaX.POS.API/EmpresaX.POS.API.csproj -c Release -o /a
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
-EXPOSE 80
-EXPOSE 443
+ENV ASPNETCORE_URLS=http://+:10000
+EXPOSE 10000
 ENTRYPOINT ["dotnet", "EmpresaX.POS.API.dll"]
