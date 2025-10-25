@@ -3,9 +3,8 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 COPY . .
-WORKDIR /app/src/EmpresaX.POS.API
-RUN dotnet restore "EmpresaX.POS.API.csproj"
-RUN dotnet build "EmpresaX.POS.API.csproj" -c Release -o /app/build
+RUN dotnet restore src/EmpresaX.POS.API/EmpresaX.POS.API.csproj
+RUN dotnet build src/EmpresaX.POS.API/EmpresaX.POS.API.csproj -c Release -o /app/build
 RUN dotnet publish src/EmpresaX.POS.API/EmpresaX.POS.API.csproj -c Release -o /app/publish
 
 # Runtime stage
