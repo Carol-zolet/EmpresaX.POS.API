@@ -776,4 +776,13 @@ Antes de aprovar qualquer deploy, certifique-se:
 5. ✅ **Observabilidade configurada** (logs, health checks, alertas)
 6. ✅ **Deploy pipeline funcional** (CI/CD, rollback automático)
 
-**Lembre-se:** É melhor atrasar um deploy do que enviar bugs para produção. 🎯
+**Lembre-se:** É melhor atrasar um deploy do que enviar bugs para produção. 🎯Crie testes completos seguindo copilot-instructions.md.
+
+Requisitos:
+- Framework: xUnit
+- Mocking: Moq
+- Padrão: AAA (Arrange, Act, Assert)
+- Cobrir: casos de sucesso, erro, edge cases
+- Nomenclatura: MetodoTestado_Cenario_ResultadoEsperado
+
+Gere classe de testes completa.
