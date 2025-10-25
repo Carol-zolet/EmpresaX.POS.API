@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: empresax-pos-api
+    env: docker
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: JWT_KEY
+        sync: false
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+    healthCheckPath: /health
+    disk:
+      name: data
+      mountPath: /data

@@ -1,0 +1,14 @@
+Deploy realizado em: 2025-10-23 23:51:35
+========================================
+Resource Group: empresax-pos-rg-v4
+Web App: empresax-pos-api-carol-v4
+PostgreSQL Server: empresax-pg-39268
+Database: empresaxposdb
+
+URLs:
+- API Base: https://empresax-pos-api-carol-v4.azurewebsites.net
+- Swagger: https://empresax-pos-api-carol-v4.azurewebsites.net/swagger
+- Health: https://empresax-pos-api-carol-v4.azurewebsites.net/health
+
+Connection String:
+Host=empresax-pg-39268.postgres.database.azure.com;Database=empresaxposdb;Username=pgadmin;Password=***;SSL Mode=Require

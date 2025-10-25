@@ -7,7 +7,8 @@ import {
   DocumentChartBarIcon,
   ChartBarIcon,
   Bars3Icon,
-  XMarkIcon
+  XMarkIcon,
+  ServerStackIcon
 } from '@heroicons/react/24/outline';
 
 interface LayoutProps {
@@ -25,6 +26,7 @@ export default function Layout({ children, currentPage }: LayoutProps) {
     { name: 'Produtos', href: '/produtos', icon: CubeIcon },
     { name: 'DRE/Caixa', href: '/caixa', icon: DocumentChartBarIcon },
     { name: 'Curva ABC', href: '/curva-abc', icon: ChartBarIcon },
+    { name: 'Diagnóstico Kafka', href: '/diagnostics-kafka', icon: ServerStackIcon },
   ];
 
   return (

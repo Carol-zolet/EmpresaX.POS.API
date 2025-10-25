@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
+import KafkaDiagnostics from './pages/KafkaDiagnostics';
 import ContasPagar from './pages/ContasPagar';
 import Clientes from './pages/Clientes';
 import Produtos from './pages/Produtos';
@@ -22,6 +23,8 @@ function App() {
         return <Caixa />;
       case '/curva-abc':
         return <CurvaABC />;
+      case '/diagnostics-kafka':
+        return <KafkaDiagnostics />;
       default:
         return <Dashboard />;
     }
