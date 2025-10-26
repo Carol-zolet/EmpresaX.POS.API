@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
@@ -7,6 +8,11 @@ import Clientes from './pages/Clientes';
 import Produtos from './pages/Produtos';
 import Caixa from './pages/Caixa';
 import CurvaABC from './pages/CurvaABC';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { LoadingProvider } from './context/LoadingContext';
+import LoadingOverlay from './components/LoadingOverlay';
+import ImportacaoPlanilha from './components/ImportacaoPlanilha';
+import Login from './components/Login';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('/');
@@ -25,6 +31,8 @@ function App() {
         return <CurvaABC />;
       case '/diagnostics-kafka':
         return <KafkaDiagnostics />;
+      case '/importacao-planilha':
+        return <ImportacaoPlanilha />;
       default:
         return <Dashboard />;
     }
@@ -44,10 +52,23 @@ function App() {
     return () => document.removeEventListener('click', handleClick);
   }, []);
 
+  // Wrapper para decidir entre login e app
+  const Main = () => {
+    const { token } = useAuth();
+    if (!token) return <Login />;
+    return (
+      <LoadingProvider>
+        <LoadingOverlay />
+        <Layout currentPage={currentPage}>
+          {renderPage()}
+        </Layout>
+      </LoadingProvider>
+    );
+  };
   return (
-    <Layout currentPage={currentPage}>
-      {renderPage()}
-    </Layout>
+    <AuthProvider>
+      <Main />
+    </AuthProvider>
   );
 }
 

@@ -26,6 +26,13 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
 
+
+    - name: Lint e format (dotnet format)
+      run: dotnet format --verify-no-changes
+
+    - name: Análise de vulnerabilidades
+      run: dotnet list package --vulnerable --include-transitive
+
     - name: Test
       run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage"
 
@@ -34,3 +41,29 @@ jobs:
       with:
         files: ./tests/EmpresaX.POS.API.Tests/TestResults/**/*.xml
         fail_ci_if_error: true
+
+    - name: Build Docker image
+      run: docker build -t sistemacaixa:${{ github.sha }} .
+
+
+    # Render: Deploy automático via Docker (após build e testes)
+    - name: Login no DockerHub
+      run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USER }} --password-stdin
+      if: github.ref == 'refs/heads/main'
+
+    - name: Tag Docker image
+      run: docker tag sistemacaixa:${{ github.sha }} ${{ secrets.DOCKERHUB_USER }}/sistemacaixa:${{ github.sha }}
+      if: github.ref == 'refs/heads/main'
+
+    - name: Push Docker image to DockerHub
+      run: docker push ${{ secrets.DOCKERHUB_USER }}/sistemacaixa:${{ github.sha }}
+      if: github.ref == 'refs/heads/main'
+
+    - name: Trigger Render Deploy
+      run: |
+        curl -X POST \
+          -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+          -H "Content-Type: application/json" \
+          -d '{"serviceId": "${{ secrets.RENDER_SERVICE_ID }}"}' \
+          https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys
+      if: github.ref == 'refs/heads/main'
