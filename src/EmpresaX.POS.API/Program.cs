@@ -16,6 +16,9 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Endpoint raiz amigável
+app.MapGet("/", () => Results.Ok("API EmpresaX POS Online"));
+
 
 // Configure the HTTP request pipeline.
 app.UseSwagger();
