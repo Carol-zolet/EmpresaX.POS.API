@@ -1,3 +1,18 @@
+    - name: Instalar dependências frontend
+      run: |
+        cd empresax-frontend/empresax-frontend
+        npm ci
+
+    - name: Testes unitários frontend
+      run: |
+        cd empresax-frontend/empresax-frontend
+        npm test -- --watchAll=false
+
+    - name: Testes E2E frontend
+      run: |
+        cd empresax-frontend/empresax-frontend
+        npx playwright install
+        npx playwright test
 # .github/workflows/dotnet.yml
 name: .NET Build and Test
 

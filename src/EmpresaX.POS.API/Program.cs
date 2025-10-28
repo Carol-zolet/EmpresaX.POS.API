@@ -3,16 +3,29 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configuração de CORS para integração frontend
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        policy => policy
+            .WithOrigins("http://localhost:3000", "https://seufrontend.com") // ajuste para seu domínio
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
+
 // Configuração do Serilog
 builder.Host.UseSerilog((ctx, lc) =>
     lc.ReadFrom.Configuration(builder.Configuration)
       .ReadFrom.Configuration(new ConfigurationBuilder().AddJsonFile("serilog.json").Build())
 );
 
+
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton<EmpresaX.POS.API.Repositories.IProdutoRepository, EmpresaX.POS.API.Repositories.ProdutoRepository>();
+
 
 var app = builder.Build();
 
@@ -21,9 +34,11 @@ app.MapGet("/", () => Results.Ok("API EmpresaX POS Online"));
 
 
 // Configure the HTTP request pipeline.
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
+app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 
 // Health check endpoint
